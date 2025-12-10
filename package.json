@@ -1,0 +1,5 @@
+{
+  "name": "wanderlens-api",
+  "version": "1.0.0",
+  "description": "WanderLens API backend for Vercel"
+}
