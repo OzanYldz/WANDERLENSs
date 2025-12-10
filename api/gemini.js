@@ -30,7 +30,7 @@ module.exports = async function handler(request, response) {
     };
     const geminiLang = langMap[language] || 'English';
 
-    const loc = location ? `Location: ${location.latitude}, ${location.longitude}` : '';
+    const loc = location ? `Location hint: ${location.latitude}, ${location.longitude}` : '';
 
     // Simplified prompt - analyze ANY image, no landmark check
     const prompt = `Analyze this photo. ${loc}
@@ -38,6 +38,7 @@ ${modeDescription || 'Describe what you see in an engaging way.'}
 Respond in ${geminiLang}.
 Start with "NAME:" followed by what you see (building name, object, or scene).
 Then provide an interesting description.
+IMPORTANT: Do NOT mention the user's location, coordinates, or GPS data in your response. Never say things like "you are at..." or mention latitude/longitude.
 Keep it 100-200 words. No markdown formatting.`;
 
     const requestBody = {
