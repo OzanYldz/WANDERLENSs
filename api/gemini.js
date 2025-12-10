@@ -30,16 +30,27 @@ module.exports = async function handler(request, response) {
     };
     const geminiLang = langMap[language] || 'English';
 
-    const loc = location ? `Location hint: ${location.latitude}, ${location.longitude}` : '';
+    // Location hint for AI to help identify the building (internal use only)
+    const locationHint = location ? `[INTERNAL HINT - DO NOT MENTION: approximate area is ${location.latitude.toFixed(2)}, ${location.longitude.toFixed(2)}]` : '';
 
-    // Simplified prompt - analyze ANY image, no landmark check
-    const prompt = `Analyze this photo. ${loc}
+    // Strict factual accuracy prompt
+    const prompt = `Analyze this photo of a building, monument, or landmark.
+${locationHint}
+
 ${modeDescription || 'Describe what you see in an engaging way.'}
+
+ABSOLUTE RULES - VIOLATION MEANS FAILURE:
+1. ONLY state VERIFIED, FACTUAL information you are 100% certain about
+2. NEVER mention ANY coordinates, numbers, GPS, latitude, longitude in your response
+3. NEVER say "you are at", "located at", or reference any location numbers
+4. If unsure about a fact, describe ONLY what you can SEE in the image
+5. Do NOT invent dates, names, or events
+6. The location hint above is ONLY for your identification - NEVER include it in response
+
 Respond in ${geminiLang}.
-Start with "NAME:" followed by what you see (building name, object, or scene).
-Then provide an interesting description.
-IMPORTANT: Do NOT mention the user's location, coordinates, or GPS data in your response. Never say things like "you are at..." or mention latitude/longitude.
-Keep it 100-200 words. No markdown formatting.`;
+Start with "NAME:" followed by the building/landmark name (or "Bilinmeyen Yapı" if unknown).
+Then provide description based ONLY on verified facts.
+Keep it 100-150 words. No markdown.`;
 
     const requestBody = {
       contents: [{
@@ -64,7 +75,12 @@ Keep it 100-200 words. No markdown formatting.`;
     }
 
     const data = await geminiResponse.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response from AI';
+    let text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response from AI';
+
+    // Post-process: Remove any coordinate-like numbers
+    text = text.replace(/\d{5,}/g, ''); // Remove long number sequences
+    text = text.replace(/\d+\.\d{4,}/g, ''); // Remove decimal coordinates
+    text = text.replace(/latitude|longitude|koordinat|enlem|boylam/gi, '');
 
     return response.status(200).json({ text, success: true });
   } catch (error) {
