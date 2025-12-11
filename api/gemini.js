@@ -34,24 +34,28 @@ module.exports = async function handler(request, response) {
     const locationHint = location ? `[INTERNAL HINT - DO NOT MENTION: approximate area is ${location.latitude.toFixed(2)}, ${location.longitude.toFixed(2)}]` : '';
 
     // Strict factual accuracy prompt
-    const prompt = `Analyze this photo of a building, monument, or landmark.
-${locationHint}
+    const prompt = `Analyze this image strictly as a travel guide AI.
 
-${modeDescription || 'Describe what you see in an engaging way.'}
+    FIRST, determine if this is a legitimate LANDMARK, MONUMENT, MUSEUM, or HISTORICAL BUILDING.
+    
+    CRITICAL CHECK:
+    - If the image shows ONLY a person, selfie, food, animal, car, electronic device, room interior, or common object (like slippers, cup, table):
+    - DO NOT HALLUCINATE A LANDMARK NAME.
+    - Instead, output: "NAME: [What you see, e.g. Bir Çift Terlik / A Coffee Cup]"
+    - Then describe it briefly and say: "This seems to be an ordinary object. To hear the hidden stories of the city, please point your camera at a historical building, monument, or statue!" (Translate this guiding message to ${geminiLang}).
+    - Do NOT use the location hint to make up a name for a non-landmark.
 
-ABSOLUTE RULES - VIOLATION MEANS FAILURE:
-1. State verified, factual information; you can use hearsay for rumors.
-2. NEVER mention ANY coordinates, numbers, GPS, latitude, longitude in your response
-3. STRICT PRIVACY: NEVER say "You are at...", "We are in...", "Your location is...", or "Here in...". This scares the user. output must NOT sound like tracking.
-4. Describe the LANDMARK directly. (e.g., "The Galata Tower is..." instead of "You are looking at the Galata Tower")
-5. If the landmark is in a specific city, you can mention the city as part of the landmark's history, but NOT as the user's current state.
-6. The location hint above is ONLY for your identification - NEVER include it in response
-7. Write simple descriptions for ordinary objects such as slippers, tables, side tables, and chairs that are not historical structures or buildings and have no historical value. Do not exaggerate or write long texts.
+    LOCATION CONTEXT (Use ONLY if a physical landmark is clearly visible):
+    ${locationHint}
 
-Respond in ${geminiLang}.
-Start with "NAME:" followed by the building/landmark name (or "Bilinmeyen Yapı" if unknown).
-Then provide description based ONLY on verified facts.
-Keep it 100-150 words. No markdown.`;
+    MODE: ${modeDescription || 'General Guide'}
+
+    ABSOLUTE RULES (If it IS a landmark):
+    1. NEVER say "You are at", "We are in", or share user's coordinates.
+    2. Name the specific building. If you don't recognize the VISUAL, say "Bilinmeyen Yapı/Unknown Landmark". Do NOT use the city name as the landmark name (e.g. Do NOT say "Istanbul Building").
+    3. Provide verified historical/cultural facts.
+    4. Respond in ${geminiLang}.
+    5. Format: "NAME: [Landmark Name]" followed by the description.`;
 
     const requestBody = {
       contents: [{
