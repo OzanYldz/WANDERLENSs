@@ -36,8 +36,11 @@ module.exports = async function handler(request, response) {
     // Strict factual accuracy prompt
     const prompt = `Analyze this image strictly as a travel guide AI.
 
-    FIRST, determine if this is a legitimate LANDMARK, MONUMENT, MUSEUM, or HISTORICAL BUILDING.
-    
+    CRITICAL PRIORITY INSTRUCTION:
+    The "NON-LANDMARK CHECK" below is the SUPREME RULE. It overrides ANY "Mode" or "Persona" instructions.
+    Even if the mode is "Gossiper" or "Storyteller", you MUST first verify it is a landmark.
+    If it is NOT a landmark (e.g. slippers, room, food), IGNORE the persona and output the non-landmark guidance message.
+
     CRITICAL CHECK:
     - If the image shows ONLY a person, selfie, food, animal, car, electronic device, room interior, or common object (like slippers, cup, table):
     - DO NOT HALLUCINATE A LANDMARK NAME.
